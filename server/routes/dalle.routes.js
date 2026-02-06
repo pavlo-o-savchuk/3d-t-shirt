@@ -18,6 +18,12 @@ router.route('/').post(async (req, res) => {
     try {
         const { prompt } = req.body;
 
+        if (!prompt) {
+            return res.status(400).json({ message: "Prompt is required" });
+        }
+
+        console.log('Generating image with prompt:', prompt);
+
         const response = await openai.images.generate({
             model: 'dall-e-2',
             prompt,
@@ -26,12 +32,18 @@ router.route('/').post(async (req, res) => {
             response_format: 'b64_json'
         })
 
+        console.log('OpenAI response:', JSON.stringify(response, null, 2));
+
         const image = response.data[0].b64_json;
         res.status(200).json({ photo: image })
 
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Something went wrong" })
+        console.error('Error generating image:', error.message);
+        console.error('Full error:', error);
+        res.status(500).json({ 
+            message: "Something went wrong",
+            error: error.message 
+        })
     }
 })
 
